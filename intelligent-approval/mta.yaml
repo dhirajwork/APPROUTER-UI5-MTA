@@ -1,0 +1,64 @@
+_schema-version: "3.2"
+ID: intelligent-approval
+version: 0.0.1
+modules:
+- name: intelligent-approval-approuter
+  type: approuter.nodejs
+  path: intelligent-approval-approuter
+  requires:
+  - name: intelligent-approval_html_repo_runtime
+  - name: html5_destination
+  - name: uaa_intelligent-approval
+  parameters:
+    disk-quota: 256M
+    memory: 256M
+- name: intelligent-approval-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: intelligent-approval-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - comsapinnovisioniaui.zip
+      name: comsapinnovisioniaui
+      target-path: resources/
+- name: comsapinnovisioniaui
+  type: html5
+  path: ui
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: intelligent-approval_html_repo_runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: uaa_intelligent-approval
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: intelligent-approval-xsuaa-service
+    service-plan: application
+- name: html5_destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service-plan: lite
+    service: destination
+- name: intelligent-approval-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: intelligent-approval-html5-srv
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
